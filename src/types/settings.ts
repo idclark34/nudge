@@ -1,3 +1,5 @@
+export const PROMPT_INTERVAL_END_OF_DAY = -1;
+
 export interface AppSettings {
   promptIntervalMinutes: number;
   quietHoursStart: string;

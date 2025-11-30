@@ -18,13 +18,21 @@ let promptWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let scheduler: PromptScheduler | null = null;
 
-const getRendererUrl = () => {
+interface RendererTarget {
+  isFile: boolean;
+  entry: string;
+}
+
+const getRendererTarget = (): RendererTarget => {
   const devServerUrl = process.env.VITE_DEV_SERVER_URL;
   if (devServerUrl) {
-    return devServerUrl;
+    return { isFile: false, entry: devServerUrl };
   }
 
-  return `file://${path.join(__dirname, "../renderer/index.html")}`;
+  return {
+    isFile: true,
+    entry: path.join(__dirname, "../renderer/index.html"),
+  };
 };
 
 const getPreloadPath = () => path.join(__dirname, "preload.js");
@@ -46,7 +54,7 @@ const openMainWindow = () => {
   if (!mainWindow || mainWindow.isDestroyed()) {
     mainWindow = createMainWindow({
       preloadPath: getPreloadPath(),
-      rendererUrl: getRendererUrl(),
+      rendererTarget: getRendererTarget(),
     });
 
     mainWindow.on("closed", () => {
@@ -65,7 +73,7 @@ const openPromptWindow = (options?: { quickEntry?: boolean }) => {
 
   promptWindow = createPromptWindow({
     preloadPath: getPreloadPath(),
-    rendererUrl: getRendererUrl(),
+    rendererTarget: getRendererTarget(),
     quickEntry: options?.quickEntry,
   });
 
@@ -117,7 +125,6 @@ const bootstrap = async () => {
   nativeTheme.themeSource = "light";
 
   getDatabase();
-  openMainWindow();
 
   registerIpcHandlers({
     openPromptWindow: (options) => {
@@ -134,8 +141,8 @@ const bootstrap = async () => {
 app.on("ready", bootstrap);
 
 app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    openMainWindow();
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    focusOrRestore(mainWindow);
   }
 });
 

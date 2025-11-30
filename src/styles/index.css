@@ -15,6 +15,15 @@ body {
   background: linear-gradient(180deg, #fdfbf5 0%, #f2f8ff 60%, #fdfbf5 100%);
 }
 
+/* Transparent background for prompt window */
+html.prompt-window,
+body.prompt-window,
+body.prompt-window #root,
+body.prompt-window #root > div {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
 .card {
   @apply rounded-2xl bg-white/90 shadow-soft backdrop-blur-sm border border-white/40;
 }
@@ -30,5 +39,520 @@ body {
 
 .no-drag {
   -webkit-app-region: no-drag;
+}
+
+/* Gentle entrance animation for prompt window */
+@keyframes gentle-appear {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.prompt-entrance {
+  animation: gentle-appear 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 3D floating shadow for prompt window */
+.prompt-shadow {
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 12px 24px -8px rgba(0, 0, 0, 0.15),
+    0 4px 8px -2px rgba(0, 0, 0, 0.1);
+}
+
+/* Staggered fade-in for elements */
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  opacity: 0;
+  animation: fade-up 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-delay-1 { animation-delay: 0.6s; }
+.animate-delay-2 { animation-delay: 1s; }
+.animate-delay-3 { animation-delay: 1.4s; }
+.animate-delay-4 { animation-delay: 1.8s; }
+
+/* Typing cursor blink */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: currentColor;
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
+}
+
+/* Bounce in for emoji */
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-bounce-in {
+  opacity: 0;
+  animation: bounce-in 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+/* Quick pop for emoji when sliding */
+@keyframes pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-pop {
+  animation: pop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Pulse glow for active elements */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px rgba(56, 189, 248, 0.2);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Confetti animations */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-20px) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(400px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-fall-slow {
+  0% {
+    transform: translateY(-20px) rotate(0deg) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(450px) rotate(540deg) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-drift {
+  0% {
+    transform: translateY(-20px) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(180px) translateX(30px) rotate(360deg);
+  }
+  100% {
+    transform: translateY(400px) translateX(-20px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@keyframes text-pop {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.confetti {
+  position: absolute;
+  font-size: 24px;
+  pointer-events: none;
+}
+
+.confetti-1 { animation: confetti-fall 2.5s ease-out forwards; animation-delay: 0s; left: 10%; }
+.confetti-2 { animation: confetti-drift 2.8s ease-out forwards; animation-delay: 0.1s; left: 25%; }
+.confetti-3 { animation: confetti-fall-slow 3s ease-out forwards; animation-delay: 0.05s; left: 40%; }
+.confetti-4 { animation: confetti-fall 2.6s ease-out forwards; animation-delay: 0.15s; left: 55%; }
+.confetti-5 { animation: confetti-drift 2.9s ease-out forwards; animation-delay: 0.08s; left: 70%; }
+.confetti-6 { animation: confetti-fall-slow 2.7s ease-out forwards; animation-delay: 0.2s; left: 85%; }
+.confetti-7 { animation: confetti-fall 2.4s ease-out forwards; animation-delay: 0.12s; left: 15%; }
+.confetti-8 { animation: confetti-drift 3.1s ease-out forwards; animation-delay: 0.18s; left: 35%; }
+.confetti-9 { animation: confetti-fall-slow 2.8s ease-out forwards; animation-delay: 0.03s; left: 50%; }
+.confetti-10 { animation: confetti-fall 2.5s ease-out forwards; animation-delay: 0.22s; left: 65%; }
+.confetti-11 { animation: confetti-drift 2.6s ease-out forwards; animation-delay: 0.07s; left: 80%; }
+.confetti-12 { animation: confetti-fall-slow 2.9s ease-out forwards; animation-delay: 0.25s; left: 20%; }
+
+.animate-text-pop {
+  animation: text-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.celebration-text-1 { animation-delay: 0.2s; opacity: 0; }
+.celebration-text-2 { animation-delay: 0.5s; opacity: 0; }
+
+/* ========================================
+   MOOD SLIDER REDESIGN STYLES
+   ======================================== */
+
+/* Custom slider styling */
+.mood-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 12px;
+  border-radius: 9999px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.mood-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    0 0 0 4px rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+.mood-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.25),
+    0 0 0 6px rgba(255, 255, 255, 0.4);
+}
+
+.mood-slider::-webkit-slider-thumb:active {
+  transform: scale(1.05);
+}
+
+.mood-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  border: none;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    0 0 0 4px rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+/* Sparkle animation for high moods */
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(180deg);
+  }
+}
+
+.sparkle {
+  position: absolute;
+  font-size: 16px;
+  animation: sparkle 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Drooping animation for low moods */
+@keyframes droop {
+  0%, 100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  25% {
+    transform: rotate(-5deg) translateY(2px);
+  }
+  75% {
+    transform: rotate(5deg) translateY(2px);
+  }
+}
+
+.animate-droop {
+  animation: droop 3s ease-in-out infinite;
+}
+
+.drooping-flower {
+  animation: droop 2s ease-in-out infinite;
+}
+
+/* Float animation for high moods */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float 2s ease-in-out infinite;
+}
+
+/* Pulse ring for electric moods */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+/* Button hover effects */
+button {
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Glass morphism for cards */
+.glass-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Smooth transitions for mood changes */
+.mood-transition {
+  transition: background 0.7s ease, color 0.3s ease;
+}
+
+/* Glow effect for interactive elements */
+.glow-on-hover:hover {
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+/* Scale up on hover for buttons */
+.scale-on-hover:hover {
+  transform: scale(1.05);
+}
+
+.scale-on-hover:active {
+  transform: scale(0.98);
+}
+
+/* ========================================
+   NOTE INPUT GLOW EFFECTS
+   ======================================== */
+
+/* Glow effect when typing */
+@keyframes note-glow-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(255, 255, 255, 0.2),
+      0 0 40px rgba(255, 255, 255, 0.1),
+      inset 0 0 20px rgba(255, 255, 255, 0.05);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(255, 255, 255, 0.3),
+      0 0 60px rgba(255, 255, 255, 0.15),
+      inset 0 0 30px rgba(255, 255, 255, 0.08);
+  }
+}
+
+.note-glow {
+  animation: note-glow-pulse 2s ease-in-out infinite;
+}
+
+/* Placeholder fade transition */
+textarea::placeholder {
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+textarea:focus::placeholder {
+  opacity: 0.3;
+  transform: translateY(-2px);
+}
+
+/* Cursor glow effect on focus */
+textarea:focus {
+  caret-color: white;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+/* Smooth placeholder cycling animation */
+@keyframes placeholder-fade {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.7; }
+}
+
+/* ========================================
+   PILL TAG ANIMATIONS (Screen 3)
+   ======================================== */
+
+.nudge-pill {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.nudge-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.nudge-pill:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Selected pill glow */
+@keyframes pill-glow {
+  0%, 100% {
+    box-shadow: 
+      0 4px 15px rgba(255, 255, 255, 0.2),
+      0 0 0 0 rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow: 
+      0 8px 25px rgba(255, 255, 255, 0.3),
+      0 0 0 4px rgba(255, 255, 255, 0.1);
+  }
+}
+
+.nudge-pill-selected {
+  animation: pill-glow 2s ease-in-out infinite;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* ========================================
+   EXIT ANIMATION (After logging)
+   ======================================== */
+
+@keyframes exit-fade-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.exit-animation {
+  animation: exit-fade-in 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+/* Floating leaf animation */
+@keyframes float-up {
+  0% {
+    opacity: 0;
+    transform: translateY(100%) rotate(0deg);
+  }
+  20% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100%) rotate(360deg);
+  }
+}
+
+.floating-leaf {
+  animation: float-up 3s ease-out infinite;
+}
+
+/* Exit text animations */
+@keyframes exit-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.exit-emoji {
+  animation: exit-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.exit-text-1 {
+  opacity: 0;
+  animation: exit-pop 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+  animation-delay: 0.15s;
+}
+
+.exit-text-2 {
+  opacity: 0;
+  animation: exit-pop 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+  animation-delay: 0.3s;
 }
 

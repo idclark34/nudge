@@ -1,5 +1,6 @@
 import { Menu, Tray, nativeImage, BrowserWindow } from "electron";
 import type { AppSettings, SettingsPatch } from "../src/types/settings";
+import { PROMPT_INTERVAL_END_OF_DAY } from "../src/types/settings";
 
 interface TrayOptions {
   getMainWindow: () => BrowserWindow | null;
@@ -31,7 +32,17 @@ const buildIcon = () => {
 };
 
 export const createQuietQuestionsTray = async (options: TrayOptions) => {
-  const frequencyOptions = [30, 60, 90, 120];
+  const frequencyOptions = [
+    { value: 10, label: "Every 10 minutes (testing)" },
+    { value: 30, label: "Every 30 minutes" },
+    { value: 60, label: "Every 60 minutes" },
+    { value: 90, label: "Every 90 minutes" },
+    { value: 120, label: "Every 2 hours" },
+    {
+      value: PROMPT_INTERVAL_END_OF_DAY,
+      label: "End of day (9:00 PM)",
+    },
+  ];
   const icon = buildIcon();
   const tray = new Tray(icon);
   tray.setToolTip("Quiet Questions");
@@ -60,13 +71,15 @@ export const createQuietQuestionsTray = async (options: TrayOptions) => {
         },
         {
           label: "Prompt frequency",
-          submenu: frequencyOptions.map((minutes) => ({
-            label: `Every ${minutes} minutes`,
+          submenu: frequencyOptions.map((option) => ({
+            label: option.label,
             type: "radio",
-            checked: settings.promptIntervalMinutes === minutes,
+            checked: settings.promptIntervalMinutes === option.value,
             click: async () => {
               try {
-                await options.updateSettings({ promptIntervalMinutes: minutes });
+                await options.updateSettings({
+                  promptIntervalMinutes: option.value,
+                });
                 options.refreshScheduler();
               } catch (error) {
                 console.error("[QuietQuestions] Failed to update frequency", error);

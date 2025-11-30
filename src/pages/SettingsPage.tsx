@@ -4,8 +4,16 @@ import { Card } from "@/components/ui/Card";
 import { useSettings } from "@/hooks/useSettings";
 import { useProjects } from "@/hooks/useProjects";
 import { useTraits } from "@/hooks/useTraits";
+import { PROMPT_INTERVAL_END_OF_DAY } from "@/types/settings";
 
-const frequencyOptions = [30, 60, 90, 120];
+const frequencyOptions = [
+  { value: 10, label: "Every 10 minutes (testing)" },
+  { value: 30, label: "Every 30 minutes" },
+  { value: 60, label: "Every 60 minutes" },
+  { value: 90, label: "Every 90 minutes" },
+  { value: 120, label: "Every 2 hours" },
+  { value: PROMPT_INTERVAL_END_OF_DAY, label: "End of day (9:00 PM)" },
+];
 
 export const SettingsPage = () => {
   const { settings, loading, saveSettings, togglePrompts } = useSettings();
@@ -61,9 +69,9 @@ export const SettingsPage = () => {
                 saveSettings({ promptIntervalMinutes: Number(event.target.value) })
               }
             >
-              {frequencyOptions.map((minutes) => (
-                <option key={minutes} value={minutes}>
-                  Every {minutes} minutes
+              {frequencyOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>

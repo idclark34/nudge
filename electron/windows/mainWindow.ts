@@ -1,14 +1,18 @@
-import path from "node:path";
 import { BrowserWindow, shell } from "electron";
+
+interface RendererTarget {
+  isFile: boolean;
+  entry: string;
+}
 
 interface CreateMainWindowOptions {
   preloadPath: string;
-  rendererUrl: string;
+  rendererTarget: RendererTarget;
 }
 
 export const createMainWindow = ({
   preloadPath,
-  rendererUrl,
+  rendererTarget,
 }: CreateMainWindowOptions): BrowserWindow => {
   const window = new BrowserWindow({
     width: 1200,
@@ -40,10 +44,14 @@ export const createMainWindow = ({
     return { action: "deny" };
   });
 
-  const targetUrl = rendererUrl.endsWith("/")
-    ? `${rendererUrl}#/`
-    : `${rendererUrl}/#/`;
-  window.loadURL(targetUrl);
+  if (rendererTarget.isFile) {
+    window.loadFile(rendererTarget.entry, { hash: "/" });
+  } else {
+    const baseUrl = rendererTarget.entry.endsWith("/")
+      ? rendererTarget.entry
+      : `${rendererTarget.entry}/`;
+    window.loadURL(`${baseUrl}#/`);
+  }
 
   return window;
 };
