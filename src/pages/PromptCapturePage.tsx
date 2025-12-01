@@ -93,8 +93,22 @@ export const PromptCapturePage = () => {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [typedPlaceholder, setTypedPlaceholder] = useState("");
   const [isNoteFocused, setIsNoteFocused] = useState(false);
+  const [gratitude, setGratitude] = useState("");
+  const [gratitudePlaceholderIndex, setGratitudePlaceholderIndex] = useState(0);
+  const [typedGratitudePlaceholder, setTypedGratitudePlaceholder] = useState("");
+  const [isGratitudeFocused, setIsGratitudeFocused] = useState(false);
 
   const prompt = promptResult?.prompt ?? null;
+
+  // Cycling placeholders for gratitude input
+  const gratitudePlaceholders = [
+    "Something small that made today better?",
+    "A person you're thankful for?",
+    "A moment of peace?",
+    "Something that just worked?",
+    "A comfort you noticed?",
+    "A kindness you received?",
+  ];
 
   // Cycling placeholders for note input
   const notePlaceholders = [
@@ -106,7 +120,7 @@ export const PromptCapturePage = () => {
     "A feeling you want to remember.",
   ];
 
-  // Typewriter effect for placeholders
+  // Typewriter effect for note placeholders
   useEffect(() => {
     if (step !== 1 || note.length > 0 || isNoteFocused) return;
     
@@ -134,6 +148,35 @@ export const PromptCapturePage = () => {
       clearTimeout(nextTimeout);
     };
   }, [step, note.length, isNoteFocused, placeholderIndex]);
+
+  // Typewriter effect for gratitude placeholders
+  useEffect(() => {
+    if (step !== 3 || gratitude.length > 0 || isGratitudeFocused) return;
+    
+    const currentPlaceholder = gratitudePlaceholders[gratitudePlaceholderIndex];
+    let charIndex = 0;
+    setTypedGratitudePlaceholder("");
+    
+    // Type out the current placeholder
+    const typeInterval = setInterval(() => {
+      if (charIndex <= currentPlaceholder.length) {
+        setTypedGratitudePlaceholder(currentPlaceholder.slice(0, charIndex));
+        charIndex++;
+      } else {
+        clearInterval(typeInterval);
+      }
+    }, 60);
+    
+    // Move to next placeholder after typing + pause
+    const nextTimeout = setTimeout(() => {
+      setGratitudePlaceholderIndex((prev) => (prev + 1) % gratitudePlaceholders.length);
+    }, currentPlaceholder.length * 60 + 2500);
+    
+    return () => {
+      clearInterval(typeInterval);
+      clearTimeout(nextTimeout);
+    };
+  }, [step, gratitude.length, isGratitudeFocused, gratitudePlaceholderIndex]);
 
   // Make body transparent for this window
   useEffect(() => {
@@ -202,6 +245,10 @@ export const PromptCapturePage = () => {
         lines.push(`Note: ${note.trim()}`);
       }
 
+      if (gratitude.trim()) {
+        lines.push(`Gratitude: ${gratitude.trim()}`);
+      }
+
       await api.createEntry({
         promptId: prompt?.id ?? null,
         promptText: resolvedPromptText,
@@ -232,6 +279,7 @@ export const PromptCapturePage = () => {
   }, [
     moodScore,
     note,
+    gratitude,
     prompt?.category,
     prompt?.id,
     projectTag,
@@ -251,7 +299,7 @@ export const PromptCapturePage = () => {
     handleClose();
   };
 
-  const totalSteps = 3;
+  const totalSteps = 4;
   const isLastStep = step === totalSteps - 1;
 
   const handleNext = () => {
@@ -568,6 +616,61 @@ export const PromptCapturePage = () => {
                         {vibeThemes.find(t => t.value === projectTag)?.emoji} Selected
                       </p>
                     )}
+                  </div>
+                )}
+
+                {/* Step 4: Gratitude */}
+                {step === 3 && (
+                  <div key={animationKey} className="no-drag space-y-5 animate-fade-up">
+                    {/* Header with emoji */}
+                    <div className="text-center space-y-2">
+                      <span className="text-3xl animate-bounce-in">🙏</span>
+                      <h2 className={cn("text-2xl font-bold tracking-tight", textColor)}>
+                        One small gratitude.
+                      </h2>
+                      <p className={cn("text-sm opacity-80", textColor)}>
+                        Even on hard days, there's usually something.
+                      </p>
+                    </div>
+
+                    {/* Reactive textarea with glow */}
+                    <div className="relative">
+                      <textarea
+                        rows={3}
+                        className={cn(
+                          "no-drag w-full rounded-2xl border-2 px-4 py-3 text-sm backdrop-blur-sm transition-all duration-300",
+                          "focus:outline-none focus:ring-0",
+                          isGratitudeFocused || gratitude.length > 0
+                            ? "border-white/50 bg-white/30 shadow-lg"
+                            : "border-white/20 bg-white/15",
+                          gratitude.length > 0 && "note-glow"
+                        )}
+                        style={{ 
+                          color: moodScore <= 4 ? 'white' : '#1e293b',
+                        }}
+                        placeholder={typedGratitudePlaceholder || gratitudePlaceholders[gratitudePlaceholderIndex]}
+                        value={gratitude}
+                        onChange={(e) => setGratitude(e.target.value)}
+                        onFocus={() => setIsGratitudeFocused(true)}
+                        onBlur={() => setIsGratitudeFocused(false)}
+                      />
+                      {/* Typing indicator */}
+                      {gratitude.length > 0 && (
+                        <div className="absolute bottom-3 right-3 flex items-center gap-1">
+                          <span className="text-xs opacity-60">{gratitude.length}</span>
+                          <span className="animate-pulse text-lg">💫</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Gentle encouragement */}
+                    <p className={cn(
+                      "text-center text-xs italic transition-all duration-500",
+                      textColor,
+                      gratitude.length > 0 ? "opacity-0" : "opacity-60"
+                    )}>
+                      Skip if nothing comes to mind — that's okay too.
+                    </p>
                   </div>
                 )}
 
