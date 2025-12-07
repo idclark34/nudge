@@ -6,6 +6,7 @@ import type {
 } from "../../src/types/journal";
 import type { PromptSelectionContext } from "../../src/types/prompt";
 import type { SettingsPatch } from "../../src/types/settings";
+import type { IntentionInput, IntentionCheckInInput } from "../../src/types/intention";
 import {
   createEntry,
   deleteEntry,
@@ -35,6 +36,18 @@ import {
   updateTrait,
 } from "../services/traitsService";
 import { buildInsightsSummary } from "../services/statsService";
+import {
+  setIntention,
+  getCurrentIntention,
+  getCurrentIntentions,
+  listIntentions,
+  createCheckIn,
+  getCheckInsForIntention,
+  getIntentionPromptContext,
+  updateIntention,
+  deleteIntention,
+  toggleIntentionActive,
+} from "../services/intentionService";
 
 export interface IpcHandlerContext {
   openPromptWindow: (options?: { quickEntry?: boolean }) => void;
@@ -135,6 +148,40 @@ export const registerIpcHandlers = (ctx: IpcHandlerContext) => {
 
   ipcMain.handle("stats:get", async () => buildInsightsSummary());
 
-  // no-op handler reserved for future needs
+  // Intention handlers
+  ipcMain.handle("intentions:create", async (_event, input: IntentionInput) =>
+    setIntention(input),
+  );
+
+  ipcMain.handle("intentions:update", async (_event, id: number, text: string) =>
+    updateIntention(id, text),
+  );
+
+  ipcMain.handle("intentions:delete", async (_event, id: number) => {
+    deleteIntention(id);
+    return true;
+  });
+
+  ipcMain.handle("intentions:toggle-active", async (_event, id: number, isActive: boolean) =>
+    toggleIntentionActive(id, isActive),
+  );
+
+  ipcMain.handle("intentions:current", async () => getCurrentIntention());
+
+  ipcMain.handle("intentions:current-all", async () => getCurrentIntentions());
+
+  ipcMain.handle("intentions:list", async () => listIntentions());
+
+  ipcMain.handle("intentions:check-in", async (_event, input: IntentionCheckInInput) =>
+    createCheckIn(input),
+  );
+
+  ipcMain.handle("intentions:check-ins", async (_event, intentionId: number) =>
+    getCheckInsForIntention(intentionId),
+  );
+
+  ipcMain.handle("intentions:prompt-context", async () =>
+    getIntentionPromptContext(),
+  );
 };
 

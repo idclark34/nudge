@@ -9,6 +9,11 @@ import type {
   PromptResult,
   PromptSelectionContext,
   Trait,
+  Intention,
+  IntentionInput,
+  IntentionCheckIn,
+  IntentionCheckInInput,
+  IntentionPromptContext,
 } from "@/types";
 
 const ensureApi = () => {
@@ -48,6 +53,28 @@ export const api = {
   deleteTrait: (id: number) => ensureApi().deleteTrait(id),
   getStats: (): Promise<InsightsSummary> => ensureApi().getStats(),
   openQuickEntry: () => ensureApi().openQuickEntry(),
+
+  // Intentions
+  createIntention: (input: IntentionInput): Promise<Intention> =>
+    ensureApi().createIntention(input),
+  updateIntention: (id: number, text: string): Promise<Intention> =>
+    ensureApi().updateIntention(id, text),
+  deleteIntention: (id: number): Promise<boolean> =>
+    ensureApi().deleteIntention(id),
+  toggleIntentionActive: (id: number, isActive: boolean): Promise<Intention> =>
+    ensureApi().toggleIntentionActive(id, isActive),
+  getCurrentIntention: (): Promise<Intention | null> =>
+    ensureApi().getCurrentIntention(),
+  getCurrentIntentions: (): Promise<Intention[]> =>
+    ensureApi().getCurrentIntentions(),
+  listIntentions: (): Promise<Intention[]> =>
+    ensureApi().listIntentions(),
+  createCheckIn: (input: IntentionCheckInInput): Promise<IntentionCheckIn> =>
+    ensureApi().createCheckIn(input),
+  getCheckInsForIntention: (intentionId: number): Promise<IntentionCheckIn[]> =>
+    ensureApi().getCheckInsForIntention(intentionId),
+  getIntentionPromptContext: (): Promise<IntentionPromptContext | null> =>
+    ensureApi().getIntentionPromptContext(),
 } satisfies Record<string, (...args: any[]) => Promise<any> | any>;
 
 export type ApiClient = typeof api;

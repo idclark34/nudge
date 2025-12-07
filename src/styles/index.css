@@ -556,3 +556,306 @@ textarea:focus {
   animation-delay: 0.3s;
 }
 
+/* ========================================
+   DASHBOARD PAGE - WARM & PLAYFUL STYLES
+   ======================================== */
+
+/* Emoji wiggle on hover */
+@keyframes wiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-5deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+}
+
+.emoji-wiggle {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.emoji-wiggle:hover,
+.group:hover .emoji-wiggle,
+*:hover > .emoji-wiggle {
+  animation: wiggle 0.4s ease-in-out;
+}
+
+.animate-wiggle {
+  animation: wiggle 0.4s ease-in-out;
+}
+
+/* Entry card hover effects */
+.entry-card {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.entry-card:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 
+    0 10px 40px -10px rgba(120, 188, 235, 0.3),
+    0 4px 20px -5px rgba(197, 255, 216, 0.2);
+}
+
+.entry-card:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* Entry emoji hover effect */
+.entry-emoji {
+  transition: transform 0.2s ease;
+}
+
+.entry-card:hover .entry-emoji {
+  animation: wiggle 0.5s ease-in-out;
+}
+
+/* Quick filter pill styles */
+.quick-filter-pill {
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  backdrop-filter: blur(8px);
+}
+
+.quick-filter-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.quick-filter-pill:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Gradient shimmer effect for selected items */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer-active {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Staggered entrance for entry cards */
+@keyframes slide-up-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.entry-card {
+  animation: slide-up-fade 0.4s ease-out forwards;
+}
+
+/* Progress bar animation */
+@keyframes grow-width {
+  0% {
+    width: 0;
+  }
+}
+
+.animate-grow {
+  animation: grow-width 0.8s ease-out forwards;
+}
+
+/* Gentle pulse for loading states */
+@keyframes gentle-pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-gentle-pulse {
+  animation: gentle-pulse 1.5s ease-in-out infinite;
+}
+
+/* Category tag gradient backgrounds */
+.category-tag {
+  position: relative;
+  overflow: hidden;
+}
+
+.category-tag::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.category-tag:hover::before {
+  left: 100%;
+}
+
+/* ========================================
+   INTENTION HERO STYLES
+   ======================================== */
+
+.intention-hero {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.intention-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  pointer-events: none;
+}
+
+/* Intention text animation */
+@keyframes intention-glow {
+  0%, 100% {
+    text-shadow: 0 0 0 transparent;
+  }
+  50% {
+    text-shadow: 0 0 30px rgba(147, 51, 234, 0.15);
+  }
+}
+
+.intention-text {
+  animation: intention-glow 4s ease-in-out infinite;
+}
+
+/* Subtle shine effect on the hero */
+@keyframes hero-shine {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%) rotate(25deg);
+  }
+  20%, 100% {
+    opacity: 0;
+    transform: translateX(200%) rotate(25deg);
+  }
+  10% {
+    opacity: 0.5;
+  }
+}
+
+.intention-hero::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transform: rotate(25deg);
+  animation: hero-shine 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ========================================
+   HEADER ANIMATIONS
+   ======================================== */
+
+@keyframes bounce-slow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2s ease-in-out infinite;
+}
+
+/* ========================================
+   FLOWING BACKGROUND GRADIENT
+   ======================================== */
+
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 50% 100%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  75% {
+    background-position: 50% 0%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animated-gradient-bg {
+  background-size: 200% 200%;
+  animation: gradient-flow 20s ease-in-out infinite;
+}
+
+/* Subtle aurora effect for the background */
+@keyframes aurora {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateY(0) scale(1);
+  }
+  33% {
+    opacity: 0.5;
+    transform: translateY(-10px) scale(1.05);
+  }
+  66% {
+    opacity: 0.4;
+    transform: translateY(5px) scale(0.98);
+  }
+}
+
+.aurora-blob {
+  animation: aurora 15s ease-in-out infinite;
+}
+
+.aurora-blob-delayed {
+  animation: aurora 18s ease-in-out infinite;
+  animation-delay: -5s;
+}
+
+.aurora-blob-slow {
+  animation: aurora 22s ease-in-out infinite;
+  animation-delay: -10s;
+}
+

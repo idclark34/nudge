@@ -137,6 +137,73 @@ const runMigrations = (database: Database.Database) => {
     `,
     )
     .run();
+
+  // Check if we need to migrate intentions table (remove UNIQUE constraint on month)
+  const tableInfo = database.prepare("PRAGMA table_info(intentions)").all();
+  
+  if (tableInfo.length === 0) {
+    // Table doesn't exist, create it without UNIQUE constraint
+    database
+      .prepare(
+        `
+        CREATE TABLE intentions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          text TEXT NOT NULL,
+          month TEXT NOT NULL,
+          is_active INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+      `,
+      )
+      .run();
+  } else {
+    // Check if is_active column exists
+    const hasIsActive = tableInfo.some((col: any) => col.name === "is_active");
+    
+    if (!hasIsActive) {
+      // Migrate: create new table, copy data, replace old table
+      database.exec(`
+        CREATE TABLE IF NOT EXISTS intentions_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          text TEXT NOT NULL,
+          month TEXT NOT NULL,
+          is_active INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        
+        INSERT INTO intentions_new (id, text, month, is_active, created_at, updated_at)
+        SELECT id, text, month, 1, created_at, updated_at FROM intentions;
+        
+        DROP TABLE intentions;
+        
+        ALTER TABLE intentions_new RENAME TO intentions;
+      `);
+    }
+  }
+
+  database
+    .prepare(
+      `
+      CREATE TABLE IF NOT EXISTS intention_check_ins (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        intention_id INTEGER NOT NULL,
+        week TEXT NOT NULL,
+        reflection TEXT NOT NULL,
+        progress TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (intention_id) REFERENCES intentions(id),
+        UNIQUE(intention_id, week)
+      );
+    `,
+    )
+    .run();
+  
+  // Create index for faster queries by month
+  database.exec(`
+    CREATE INDEX IF NOT EXISTS idx_intentions_month ON intentions(month);
+  `);
 };
 
 const seedStaticData = (database: Database.Database) => {

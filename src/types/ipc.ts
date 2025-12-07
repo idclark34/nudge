@@ -8,6 +8,13 @@ import type { PromptResult, PromptSelectionContext } from "./prompt";
 import type { AppSettings, SettingsPatch } from "./settings";
 import type { InsightsSummary } from "./stats";
 import type { Project, Trait } from "./taxonomy";
+import type {
+  Intention,
+  IntentionInput,
+  IntentionCheckIn,
+  IntentionCheckInInput,
+  IntentionPromptContext,
+} from "./intention";
 
 export interface RendererApi {
   createEntry(payload: JournalEntryInput): Promise<JournalEntry>;
@@ -40,6 +47,18 @@ export interface RendererApi {
 
   getStats(): Promise<InsightsSummary>;
   openQuickEntry(): Promise<void>;
+
+  // Intentions
+  createIntention(input: IntentionInput): Promise<Intention>;
+  updateIntention(id: number, text: string): Promise<Intention>;
+  deleteIntention(id: number): Promise<boolean>;
+  toggleIntentionActive(id: number, isActive: boolean): Promise<Intention>;
+  getCurrentIntention(): Promise<Intention | null>;
+  getCurrentIntentions(): Promise<Intention[]>;
+  listIntentions(): Promise<Intention[]>;
+  createCheckIn(input: IntentionCheckInInput): Promise<IntentionCheckIn>;
+  getCheckInsForIntention(intentionId: number): Promise<IntentionCheckIn[]>;
+  getIntentionPromptContext(): Promise<IntentionPromptContext | null>;
 }
 
 declare global {

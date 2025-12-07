@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { PromptResult } from "@/types";
+import type { PromptResult, IntentionPromptContext } from "@/types";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 
@@ -51,6 +51,23 @@ const formatPromptText = (template: string, projectTag?: string | null) =>
     ? template.replace(/\[PROJECT\]/g, projectTag)
     : template;
 
+// Helper to get ISO week number
+const getISOWeek = (date: Date): number => {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+};
+
+// Progress options for intention check-ins
+const progressOptions = [
+  { value: "on_track" as const, label: "On track", emoji: "🎯", color: "bg-emerald-500/20 border-emerald-400" },
+  { value: "struggling" as const, label: "Struggling", emoji: "💪", color: "bg-amber-500/20 border-amber-400" },
+  { value: "pivoting" as const, label: "Pivoting", emoji: "🔄", color: "bg-blue-500/20 border-blue-400" },
+  { value: "achieved" as const, label: "Achieved!", emoji: "🎉", color: "bg-purple-500/20 border-purple-400" },
+];
+
 // Sparkle component for high moods
 const Sparkles = ({ count = 8 }: { count?: number }) => (
   <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -98,6 +115,16 @@ export const PromptCapturePage = () => {
   const [typedGratitudePlaceholder, setTypedGratitudePlaceholder] = useState("");
   const [isGratitudeFocused, setIsGratitudeFocused] = useState(false);
 
+  // Intention state
+  const [intentionContext, setIntentionContext] = useState<IntentionPromptContext | null>(null);
+  const [intentionText, setIntentionText] = useState("");
+  const [isIntentionFocused, setIsIntentionFocused] = useState(false);
+  const [intentionPlaceholderIndex, setIntentionPlaceholderIndex] = useState(0);
+  const [typedIntentionPlaceholder, setTypedIntentionPlaceholder] = useState("");
+  const [checkInReflection, setCheckInReflection] = useState("");
+  const [isCheckInFocused, setIsCheckInFocused] = useState(false);
+  const [checkInProgress, setCheckInProgress] = useState<"on_track" | "struggling" | "pivoting" | "achieved" | null>(null);
+
   const prompt = promptResult?.prompt ?? null;
 
   // Cycling placeholders for gratitude input
@@ -120,9 +147,27 @@ export const PromptCapturePage = () => {
     "A feeling you want to remember.",
   ];
 
+  // Cycling placeholders for monthly intention
+  const intentionPlaceholders = [
+    "Practice more patience this month",
+    "Ship my side project",
+    "Read one book cover to cover",
+    "Move my body every day",
+    "Spend less time on my phone",
+    "Connect with an old friend",
+    "Learn something completely new",
+    "Create more than I consume",
+    "Say no to what drains me",
+    "Be kinder to myself",
+  ];
+
+  // Calculate content step early for use in effects
+  const hasIntentionStep = intentionContext !== null;
+  const contentStep = hasIntentionStep ? step - 1 : step;
+
   // Typewriter effect for note placeholders
   useEffect(() => {
-    if (step !== 1 || note.length > 0 || isNoteFocused) return;
+    if (contentStep !== 1 || note.length > 0 || isNoteFocused) return;
     
     const currentPlaceholder = notePlaceholders[placeholderIndex];
     let charIndex = 0;
@@ -147,11 +192,11 @@ export const PromptCapturePage = () => {
       clearInterval(typeInterval);
       clearTimeout(nextTimeout);
     };
-  }, [step, note.length, isNoteFocused, placeholderIndex]);
+  }, [contentStep, note.length, isNoteFocused, placeholderIndex]);
 
   // Typewriter effect for gratitude placeholders
   useEffect(() => {
-    if (step !== 3 || gratitude.length > 0 || isGratitudeFocused) return;
+    if (contentStep !== 3 || gratitude.length > 0 || isGratitudeFocused) return;
     
     const currentPlaceholder = gratitudePlaceholders[gratitudePlaceholderIndex];
     let charIndex = 0;
@@ -176,7 +221,38 @@ export const PromptCapturePage = () => {
       clearInterval(typeInterval);
       clearTimeout(nextTimeout);
     };
-  }, [step, gratitude.length, isGratitudeFocused, gratitudePlaceholderIndex]);
+  }, [contentStep, gratitude.length, isGratitudeFocused, gratitudePlaceholderIndex]);
+
+  // Typewriter effect for intention placeholders
+  useEffect(() => {
+    // Only run on intention step (step 0 when hasIntentionStep) and for new intentions
+    const isIntentionStep = hasIntentionStep && step === 0 && intentionContext?.type === "new_intention";
+    if (!isIntentionStep || intentionText.length > 0 || isIntentionFocused) return;
+    
+    const currentPlaceholder = intentionPlaceholders[intentionPlaceholderIndex];
+    let charIndex = 0;
+    setTypedIntentionPlaceholder("");
+    
+    // Type out the current placeholder
+    const typeInterval = setInterval(() => {
+      if (charIndex <= currentPlaceholder.length) {
+        setTypedIntentionPlaceholder(currentPlaceholder.slice(0, charIndex));
+        charIndex++;
+      } else {
+        clearInterval(typeInterval);
+      }
+    }, 50); // Slightly faster typing for intentions
+    
+    // Move to next placeholder after typing + pause
+    const nextTimeout = setTimeout(() => {
+      setIntentionPlaceholderIndex((prev) => (prev + 1) % intentionPlaceholders.length);
+    }, currentPlaceholder.length * 50 + 2500);
+    
+    return () => {
+      clearInterval(typeInterval);
+      clearTimeout(nextTimeout);
+    };
+  }, [hasIntentionStep, step, intentionContext?.type, intentionText.length, isIntentionFocused, intentionPlaceholderIndex]);
 
   // Make body transparent for this window
   useEffect(() => {
@@ -192,6 +268,16 @@ export const PromptCapturePage = () => {
     const loadPrompt = async () => {
       try {
         setLoading(true);
+        
+        // Load intention context first
+        const intentionCtx = await api.getIntentionPromptContext();
+        setIntentionContext(intentionCtx);
+        
+        // If we have an existing intention, pre-fill it for editing
+        if (intentionCtx?.currentIntention) {
+          setIntentionText(intentionCtx.currentIntention.text);
+        }
+        
         const result = await api.getPrompt();
         if (result) {
           setPromptResult(result);
@@ -233,6 +319,31 @@ export const PromptCapturePage = () => {
       setLoading(true);
       setError(null);
 
+      // Save intention if we set/updated one
+      if (intentionContext && intentionText.trim()) {
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        
+        if (intentionContext.type === "new_intention") {
+          await api.createIntention({
+            text: intentionText.trim(),
+            month: currentMonth,
+          });
+        }
+        
+        // Save check-in if we have reflection
+        if (intentionContext.type === "check_in" && checkInReflection.trim() && checkInProgress && intentionContext.currentIntention) {
+          const now = new Date();
+          const weekYear = now.getFullYear();
+          const weekNum = getISOWeek(now);
+          await api.createCheckIn({
+            intentionId: intentionContext.currentIntention.id,
+            week: `${weekYear}-W${String(weekNum).padStart(2, "0")}`,
+            reflection: checkInReflection.trim(),
+            progress: checkInProgress,
+          });
+        }
+      }
+
       const lines = [
         `Mood check-in: ${score}/10 — ${
           selectedMood
@@ -249,10 +360,15 @@ export const PromptCapturePage = () => {
         lines.push(`Gratitude: ${gratitude.trim()}`);
       }
 
+      // Generate a meaningful title based on mood
+      const moodTitle = selectedMood 
+        ? `${selectedMood.emoji} ${selectedMood.label}`
+        : "Mood Check-in";
+
       await api.createEntry({
-        promptId: prompt?.id ?? null,
-        promptText: resolvedPromptText,
-        category: prompt?.category ?? "emotion",
+        promptId: null,
+        promptText: moodTitle,
+        category: "emotion",
         text: lines.join("\n"),
         projectTag: projectTag || null,
         traitTag: traitTag || null,
@@ -285,6 +401,10 @@ export const PromptCapturePage = () => {
     projectTag,
     resolvedPromptText,
     traitTag,
+    intentionContext,
+    intentionText,
+    checkInReflection,
+    checkInProgress,
   ]);
 
   const handleSkip = async () => {
@@ -299,7 +419,9 @@ export const PromptCapturePage = () => {
     handleClose();
   };
 
-  const totalSteps = 4;
+  // Calculate total steps including intention step if needed
+  const baseSteps = 4; // mood, note, vibe theme, gratitude
+  const totalSteps = hasIntentionStep ? baseSteps + 1 : baseSteps;
   const isLastStep = step === totalSteps - 1;
 
   const handleNext = () => {
@@ -432,8 +554,134 @@ export const PromptCapturePage = () => {
           <div className="flex flex-1 flex-col justify-center gap-6 py-6">
             {showContent && (
               <>
+                {/* Intention Step (shown first if needed) */}
+                {hasIntentionStep && step === 0 && (
+                  <div key={animationKey} className="no-drag space-y-5 animate-fade-up">
+                    {intentionContext?.type === "new_intention" ? (
+                      <>
+                        {/* New Intention Setting */}
+                        <div className="text-center space-y-2">
+                          <span className="text-3xl animate-bounce-in">🌟</span>
+                          <h2 className={cn("text-2xl font-bold tracking-tight", textColor)}>
+                            {new Date().toLocaleDateString("en-US", { month: "long" })} Intention
+                          </h2>
+                          <p className={cn("text-sm opacity-80", textColor)}>
+                            What do you want to focus on this month?
+                          </p>
+                        </div>
+
+                        <div className="relative">
+                          <textarea
+                            rows={3}
+                            className={cn(
+                              "no-drag w-full rounded-2xl border-2 px-4 py-3 text-sm backdrop-blur-sm transition-all duration-300",
+                              "focus:outline-none focus:ring-0",
+                              isIntentionFocused || intentionText.length > 0
+                                ? "border-white/50 bg-white/30 shadow-lg"
+                                : "border-white/20 bg-white/15",
+                              intentionText.length > 0 && "note-glow"
+                            )}
+                            style={{ 
+                              color: moodScore <= 4 ? 'white' : '#1e293b',
+                            }}
+                            placeholder={typedIntentionPlaceholder || intentionPlaceholders[intentionPlaceholderIndex]}
+                            value={intentionText}
+                            onChange={(e) => setIntentionText(e.target.value)}
+                            onFocus={() => setIsIntentionFocused(true)}
+                            onBlur={() => setIsIntentionFocused(false)}
+                          />
+                          {intentionText.length > 0 && (
+                            <div className="absolute bottom-3 right-3 flex items-center gap-1">
+                              <span className="animate-pulse text-lg">🌟</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <p className={cn(
+                          "text-center text-xs italic transition-all duration-500",
+                          textColor,
+                          intentionText.length > 0 ? "opacity-0" : "opacity-60"
+                        )}>
+                          We'll check in weekly to keep you aligned.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        {/* Weekly Check-in */}
+                        <div className="text-center space-y-2">
+                          <span className="text-3xl animate-bounce-in">🔄</span>
+                          <h2 className={cn("text-2xl font-bold tracking-tight", textColor)}>
+                            Weekly Check-in
+                          </h2>
+                          <p className={cn("text-sm opacity-80", textColor)}>
+                            Your intention for {new Date().toLocaleDateString("en-US", { month: "long" })}:
+                          </p>
+                        </div>
+
+                        {/* Show current intention */}
+                        <div className={cn(
+                          "rounded-2xl border-2 border-white/30 bg-white/20 px-4 py-3 backdrop-blur-sm",
+                        )}>
+                          <p className={cn("text-center font-medium", textColor)}>
+                            "{intentionContext?.currentIntention?.text}"
+                          </p>
+                        </div>
+
+                        {/* Progress selection */}
+                        <div className="space-y-3">
+                          <p className={cn("text-sm font-medium text-center", textColor)}>
+                            How's it going?
+                          </p>
+                          <div className="flex flex-wrap justify-center gap-2">
+                            {progressOptions.map((option) => (
+                              <button
+                                key={option.value}
+                                type="button"
+                                onClick={() => setCheckInProgress(option.value)}
+                                className={cn(
+                                  "no-drag flex items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-medium",
+                                  "transition-all duration-300",
+                                  checkInProgress === option.value
+                                    ? `${option.color} shadow-lg -translate-y-1`
+                                    : "border-white/20 bg-white/15 hover:bg-white/25",
+                                  textColor
+                                )}
+                              >
+                                <span>{option.emoji}</span>
+                                <span>{option.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Reflection textarea */}
+                        <div className="relative">
+                          <textarea
+                            rows={2}
+                            className={cn(
+                              "no-drag w-full rounded-2xl border-2 px-4 py-3 text-sm backdrop-blur-sm transition-all duration-300",
+                              "focus:outline-none focus:ring-0",
+                              isCheckInFocused || checkInReflection.length > 0
+                                ? "border-white/50 bg-white/30 shadow-lg"
+                                : "border-white/20 bg-white/15",
+                            )}
+                            style={{ 
+                              color: moodScore <= 4 ? 'white' : '#1e293b',
+                            }}
+                            placeholder="Quick reflection on your progress..."
+                            value={checkInReflection}
+                            onChange={(e) => setCheckInReflection(e.target.value)}
+                            onFocus={() => setIsCheckInFocused(true)}
+                            onBlur={() => setIsCheckInFocused(false)}
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
                 {/* Step 1: Mood Slider */}
-                {step === 0 && (
+                {contentStep === 0 && (!hasIntentionStep || step > 0) && (
                   <div key={animationKey} className="no-drag space-y-6 animate-fade-up">
                     <div className="text-center">
                       <h2 className={cn("text-2xl font-bold tracking-tight", textColor)}>
@@ -502,7 +750,7 @@ export const PromptCapturePage = () => {
                 )}
 
                 {/* Step 2: Note */}
-                {step === 1 && (
+                {contentStep === 1 && (
                   <div key={animationKey} className="no-drag space-y-5 animate-fade-up">
                     {/* Header with emoji */}
                     <div className="text-center space-y-2">
@@ -557,7 +805,7 @@ export const PromptCapturePage = () => {
                 )}
 
                 {/* Step 3: Vibe themes - Pill style */}
-                {step === 2 && (
+                {contentStep === 2 && (
                   <div key={animationKey} className="no-drag space-y-5 animate-fade-up">
                     <div className="text-center space-y-2">
                       <span className="text-3xl animate-bounce-in">🎯</span>
@@ -620,7 +868,7 @@ export const PromptCapturePage = () => {
                 )}
 
                 {/* Step 4: Gratitude */}
-                {step === 3 && (
+                {contentStep === 3 && (
                   <div key={animationKey} className="no-drag space-y-5 animate-fade-up">
                     {/* Header with emoji */}
                     <div className="text-center space-y-2">
